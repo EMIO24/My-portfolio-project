@@ -1,0 +1,99 @@
+{% extends 'portfolio/base.html' %}
+
+{% block content %}
+<section class="py-12">
+    <div class="container mx-auto max-w-4xl">
+        <h1 class="text-4xl font-bold mb-8">Get In Touch</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+            <div>
+                <h2 class="text-2xl font-bold mb-6">Contact Information</h2>
+                <p class="text-gray-600 mb-6">Have a project in mind or want to discuss potential opportunities? Feel free to reach out using the form or the contact details below.</p>
+                
+                <div class="space-y-4">
+                    <div class="flex items-start">
+                        <div class="text-indigo-600 mr-4 mt-1">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold">Email</h3>
+                            <p class="text-gray-600">contact@emio24.example</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start">
+                        <div class="text-indigo-600 mr-4 mt-1">
+                            <i class="fas fa-phone"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold">Phone</h3>
+                            <p class="text-gray-600">+1 (555) 123-4567</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start">
+                        <div class="text-indigo-600 mr-4 mt-1">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold">Location</h3>
+                            <p class="text-gray-600">San Francisco, CA</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div>
+                <h2 class="text-2xl font-bold mb-6">Send Me a Message</h2>
+                <form method="post" class="space-y-4">
+                    {% csrf_token %}
+                    
+                    <div>
+                        <label for="{{ form.full_name.id_for_label }}" class="block text-gray-700 font-medium mb-2">Full Name</label>
+                        {{ form.full_name }}
+                        {% if form.full_name.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.full_name.errors.as_text }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.email.id_for_label }}" class="block text-gray-700 font-medium mb-2">Email Address</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.email.errors.as_text }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.phone_number.id_for_label }}" class="block text-gray-700 font-medium mb-2">Phone Number (Optional)</label>
+                        {{ form.phone_number }}
+                        {% if form.phone_number.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.phone_number.errors.as_text }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.subject.id_for_label }}" class="block text-gray-700 font-medium mb-2">Subject (Optional)</label>
+                        {{ form.subject }}
+                        {% if form.subject.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.subject.errors.as_text }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.message.id_for_label }}" class="block text-gray-700 font-medium mb-2">Message</label>
+                        {{ form.message }}
+                        {% if form.message.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.message.errors.as_text }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <button type="submit" class="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-indigo-700 transition">
+                        Send Message
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

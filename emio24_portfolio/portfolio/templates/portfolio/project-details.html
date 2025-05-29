@@ -1,0 +1,100 @@
+{% extends 'portfolio/base.html' %}
+
+{% block content %}
+<section class="py-12">
+    <div class="container mx-auto">
+        <div class="max-w-4xl mx-auto">
+            <div class="mb-8">
+                <h1 class="text-3xl md:text-4xl font-bold mb-4">{{ project.name }}</h1>
+                {% if project.client_name %}
+                <p class="text-gray-600 mb-4">Client: {{ project.client_name }}</p>
+                {% endif %}
+                <p class="text-gray-600 mb-4">Completed: {{ project.completion_date|date:"F Y" }}</p>
+                {% if project.repository_url %}
+                <a href="{{ project.repository_url }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center text-indigo-600 hover:text-indigo-800">
+                    <i class="fab fa-github mr-2"></i> View on GitHub
+                </a>
+                {% endif %}
+            </div>
+            
+            <div class="mb-12">
+                <div class="bg-gray-200 rounded-lg overflow-hidden mb-6">
+                    {% if project.images.first %}
+                    <img src="{{ project.images.first.image.url }}" alt="{{ project.images.first.alt_text }}" class="w-full h-auto">
+                    {% endif %}
+                </div>
+                
+                <div class="prose max-w-none">
+                    <h2 class="text-2xl font-bold mb-4">Project Overview</h2>
+                    {{ project.full_description|linebreaks }}
+                </div>
+            </div>
+            
+            {% if project.images.count > 1 %}
+            <div class="mb-12">
+                <h2 class="text-2xl font-bold mb-6">Project Gallery</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {% for image in project.images.all|slice:"1:" %}
+                    <div class="bg-gray-200 rounded-lg overflow-hidden">
+                        <img src="{{ image.image.url }}" alt="{{ image.alt_text }}" class="w-full h-auto">
+                        {% if image.caption %}
+                        <p class="mt-2 text-sm text-gray-600">{{ image.caption }}</p>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if project.technologies_used.exists %}
+            <div class="mb-12">
+                <h2 class="text-2xl font-bold mb-6">Technologies Used</h2>
+                <div class="flex flex-wrap gap-4">
+                    {% for pt in project.technologies_used.all %}
+                    <div class="flex items-center bg-gray-100 rounded-lg px-4 py-3">
+                        {% if pt.technology.logo %}
+                        <img src="{{ pt.technology.logo.url }}" alt="{{ pt.technology.name }} logo" class="w-8 h-8 mr-3">
+                        {% endif %}
+                        <div>
+                            <h3 class="font-medium">{{ pt.technology.name }}</h3>
+                            {% if pt.usage_context %}
+                            <p class="text-sm text-gray-600">{{ pt.usage_context }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if project.testimonials.exists %}
+            <div class="mb-12">
+                <h2 class="text-2xl font-bold mb-6">Client Feedback</h2>
+                <div class="space-y-6">
+                    {% for testimonial in project.testimonials.all %}
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <div class="flex items-center mb-4">
+                            <div class="bg-indigo-100 text-indigo-600 rounded-full w-10 h-10 flex items-center justify-center mr-4">
+                                <i class="fas fa-quote-left"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold">{{ testimonial.client_name }}</h4>
+                                {% if testimonial.client_company_or_role %}
+                                <p class="text-gray-600 text-sm">{{ testimonial.client_company_or_role }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <p class="text-gray-700 italic">"{{ testimonial.quote_text }}"</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="text-center mt-12">
+                <a href="{% url 'projects' %}" class="inline-block bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-indigo-700 transition">Back to All Projects</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}EMIO24 Portfolio{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-gray-50">
+    <header class="bg-white shadow-sm">
+        <div class="container mx-auto px-4 py-6">
+            <nav class="flex justify-between items-center">
+                <a href="{% url 'home' %}" class="text-2xl font-bold text-indigo-600">EMIO24</a>
+                <div class="hidden md:flex space-x-8">
+                    <a href="{% url 'home' %}" class="text-gray-700 hover:text-indigo-600">Home</a>
+                    <a href="{% url 'projects' %}" class="text-gray-700 hover:text-indigo-600">Projects</a>
+                    <a href="{% url 'services' %}" class="text-gray-700 hover:text-indigo-600">Services</a>
+                    <a href="{% url 'contact' %}" class="text-gray-700 hover:text-indigo-600">Contact</a>
+                </div>
+                <button class="md:hidden text-gray-700">
+                    <i class="fas fa-bars text-2xl"></i>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="bg-gray-800 text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold mb-4">EMIO24</h3>
+                    <p class="text-gray-300">Showcasing my craft and skills to potential employers and clients.</p>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold mb-4">Quick Links</h3>
+                    <ul class="space-y-2">
+                        <li><a href="{% url 'home' %}" class="text-gray-300 hover:text-white">Home</a></li>
+                        <li><a href="{% url 'projects' %}" class="text-gray-300 hover:text-white">Projects</a></li>
+                        <li><a href="{% url 'services' %}" class="text-gray-300 hover:text-white">Services</a></li>
+                        <li><a href="{% url 'contact' %}" class="text-gray-300 hover:text-white">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold mb-4">Get In Touch</h3>
+                    <p class="text-gray-300 mb-4">Have a project in mind or want to discuss opportunities?</p>
+                    <a href="{% url 'contact' %}" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition">Contact Me</a>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; {% now "Y" %} EMIO24 Portfolio. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
