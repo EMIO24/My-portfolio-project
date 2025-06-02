@@ -1,76 +1,79 @@
-from django.shortcuts import render, get_object_or_404
-from django.views.generic import ListView, DetailView, TemplateView
-from django.views.generic.edit import CreateView
-from django.urls import reverse_lazy
+# portfolio/views.py
+
+from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator
-from .models import Project, Service, Technology, Testimonial, SitePage, ContactSubmission
-from .forms import ContactForm
+from django.contrib import messages # For displaying success/error messages
+from .models import Project, Service, Testimonial, ContactMessage, Technology
+from .forms import ContactForm # Import the form we just created
 
-class HomeView(TemplateView):
-    template_name = 'portfolio/index.html'
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['featured_projects'] = Project.objects.filter(is_featured=True).order_by('display_order')[:3]
-        context['services'] = Service.objects.filter(is_active=True).order_by('display_order')
-        context['testimonials'] = Testimonial.objects.filter(is_visible=True).order_by('display_order')[:3]
-        return context
+def home(request):
+    """
+    Renders the homepage with featured projects, services, and testimonials.
+    """
+    # Fetch featured projects (e.g., top 3)
+    featured_projects = Project.objects.filter(is_featured=True).order_by('-completion_date')[:3]
+    services = Service.objects.all()
+    testimonials = Testimonial.objects.all()
 
-class ProjectListView(ListView):
-    model = Project
-    template_name = 'portfolio/projects.html'
-    context_object_name = 'projects'
-    paginate_by = 6
-    
-    def get_queryset(self):
-        return Project.objects.all().order_by('display_order', '-completion_date')
-
-class ProjectDetailView(DetailView):
-    model = Project
-    template_name = 'portfolio/project_detail.html'
-    context_object_name = 'project'
-    slug_field = 'slug'
-    slug_url_kwarg = 'slug'
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        project = self.get_object()
-        context['technologies'] = project.technologies_used.select_related('technology')
-        return context
-
-class ServiceListView(ListView):
-    model = Service
-    template_name = 'portfolio/services.html'
-    context_object_name = 'services'
-    
-    def get_queryset(self):
-        return Service.objects.filter(is_active=True).order_by('display_order')
-
-class PageDetailView(DetailView):
-    model = SitePage
-    template_name = 'portfolio/page_detail.html'
-    context_object_name = 'page'
-    slug_field = 'slug'
-    slug_url_kwarg = 'slug'
-
-class ContactView(CreateView):
-    model = ContactSubmission
-    form_class = ContactForm
-    template_name = 'portfolio/contact.html'
-    success_url = reverse_lazy('contact_success')
-    
-    def form_valid(self, form):
-        # You could add email notification logic here
-        return super().form_valid(form)
-
-def contact_success(request):
-    return render(request, 'portfolio/contact_success.html')
-
-def technology_projects(request, tech_id):
-    technology = get_object_or_404(Technology, pk=tech_id)
-    projects = Project.objects.filter(technologies_used__technology=technology).order_by('display_order')
     context = {
-        'technology': technology,
-        'projects': projects
+        'featured_projects': featured_projects,
+        'services': services,
+        'testimonials': testimonials,
     }
-    return render(request, 'portfolio/technology_projects.html', context)
+    return render(request, 'portfolio/home.html', context)
+
+def project_list(request):
+    """
+    Renders the page listing all projects with pagination.
+    """
+    all_projects = Project.objects.all()
+    paginator = Paginator(all_projects, 6) # Show 6 projects per page
+
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'page_obj': page_obj,
+    }
+    return render(request, 'portfolio/projects.html', context)
+
+def project_detail(request, slug):
+    """
+    Renders the detailed view for a single project.
+    """
+    project = get_object_or_404(Project, slug=slug)
+    context = {
+        'project': project,
+    }
+    return render(request, 'portfolio/project_detail.html', context)
+
+def service_list(request):
+    """
+    Renders the page listing all services.
+    """
+    services = Service.objects.all()
+    context = {
+        'services': services,
+    }
+    return render(request, 'portfolio/services.html', context)
+
+def contact_view(request):
+    """
+    Handles the contact form submission and renders the contact page.
+    """
+    if request.method == 'POST':
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            form.save() # Saves the contact message to the database
+            messages.success(request, 'Your message has been sent successfully! I will get back to you shortly.')
+            return redirect('contact') # Redirect to prevent resubmission on refresh
+        else:
+            messages.error(request, 'There was an error with your submission. Please correct the errors below.')
+    else:
+        form = ContactForm() # Create an empty form for GET requests
+
+    context = {
+        'form': form,
+    }
+    return render(request, 'portfolio/contact.html', context)
+

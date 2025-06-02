@@ -1,36 +1,29 @@
+{# portfolio/templates/portfolio/services.html #}
 {% extends 'portfolio/base.html' %}
 
+{% block title %}Services | EMIO24 Portfolio{% endblock %}
+
 {% block content %}
-<section class="py-12">
-    <div class="container mx-auto">
-        <h1 class="text-4xl font-bold mb-8">My Services</h1>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <section class="py-16" id="services-page">
+        <h1 class="text-4xl font-bold text-center mb-12 text-gray-800">My Services</h1>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {% for service in services %}
-            <div class="bg-white p-8 rounded-lg shadow-md hover:shadow-lg transition">
-                <div class="flex items-start">
-                    {% if service.icon_class %}
-                    <div class="text-3xl text-indigo-600 mr-6">
-                        <i class="{{ service.icon_class }}"></i>
+                <div class="bg-white p-8 rounded-xl shadow-md text-center hover:shadow-lg transition transform hover:-translate-y-1">
+                    <div class="text-5xl text-indigo-600 mb-6">
+                        <i class="{{ service.icon_class|default:'fas fa-code' }}"></i>
                     </div>
-                    {% endif %}
-                    <div>
-                        <h2 class="text-2xl font-bold mb-4">{{ service.name }}</h2>
-                        <p class="text-gray-600 mb-6">{{ service.description }}</p>
-                        <a href="{% url 'contact' %}" class="inline-block bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition">Get This Service</a>
-                    </div>
+                    <h2 class="text-2xl font-bold mb-4">{{ service.name }}</h2>
+                    <p class="text-gray-600">{{ service.description }}</p>
+                    <a href="{% url 'contact' %}" class="inline-block bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-indigo-700 transition mt-6">Get This Service</a>
                 </div>
-            </div>
+            {% empty %}
+                <p class="col-span-full text-center text-gray-500 text-lg">No services available yet. Please add some in the admin!</p>
             {% endfor %}
         </div>
-    </div>
-</section>
-
-<section class="py-12 bg-gray-100">
-    <div class="container mx-auto text-center">
-        <h2 class="text-3xl font-bold mb-6">Ready to Start a Project?</h2>
-        <p class="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">I'm available for freelance work and full-time opportunities. Let's discuss how I can help bring your ideas to life.</p>
-        <a href="{% url 'contact' %}" class="inline-block bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-indigo-700 transition">Contact Me</a>
-    </div>
-</section>
+        <div class="text-center mt-12">
+            <h2 class="text-3xl font-bold mb-6 text-gray-800">Ready to Start a Project?</h2>
+            <p class="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">I'm available for freelance work and full-time opportunities. Let's discuss how I can help bring your ideas to life.</p>
+            <a href="{% url 'contact' %}" class="inline-block bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-indigo-700 transition">Contact Me</a>
+        </div>
+    </section>
 {% endblock %}

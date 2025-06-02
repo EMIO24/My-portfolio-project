@@ -58,15 +58,14 @@ ROOT_URLCONF = 'emio24_portfolio.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'DIRS': [BASE_DIR / 'templates'], # Add this line to include a project-level templates directory
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-                'portfolio.context_processors.global_context',
+                'django.contrib.messages.context_processors.messages', # Essential for Django messages
             ],
         },
     },
@@ -80,11 +79,17 @@ WSGI_APPLICATION = 'emio24_portfolio.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'portfolio',       # Replace with your database name
+        'USER': 'EMIO24',       # Replace with your database user
+        'PASSWORD': 'Passion13.',   # Replace with your database password
+        'HOST': 'localhost',          # Or the IP address/hostname of your MySQL server
+        'PORT': '3306',               # Default MySQL port
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'", # Recommended for MySQL
+        }
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -121,9 +126,15 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 # Static files configuration
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+STATIC_URL = 'static/'
+STATICFILES_DIRS = [
+    BASE_DIR / 'static', # Where Django will look for static files during development
+]
+STATIC_ROOT = BASE_DIR / 'staticfiles' # Where 'collectstatic' will gather static files for production
+
+# Media files (user-uploaded content)
+MEDIA_URL = 'media/'
+MEDIA_ROOT = BASE_DIR / 'mediafiles' # Where uploaded files will be stored
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

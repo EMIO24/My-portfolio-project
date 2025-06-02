@@ -1,18 +1,23 @@
+# portfolio/forms.py
+
 from django import forms
-from .models import ContactSubmission
+from .models import ContactMessage
 
 class ContactForm(forms.ModelForm):
+    """
+    Django form for the ContactMessage model.
+    """
     class Meta:
-        model = ContactSubmission
+        model = ContactMessage
         fields = ['full_name', 'email', 'phone_number', 'subject', 'message']
         widgets = {
-            'message': forms.Textarea(attrs={'rows': 5}),
+            'full_name': forms.TextInput(attrs={'class': 'form-input-field', 'placeholder': 'Your Full Name'}),
+            'email': forms.EmailInput(attrs={'class': 'form-input-field', 'placeholder': 'your.email@example.com'}),
+            'phone_number': forms.TextInput(attrs={'class': 'form-input-field', 'placeholder': '+1 (XXX) XXX-XXXX'}),
+            'subject': forms.TextInput(attrs={'class': 'form-input-field', 'placeholder': 'Project Inquiry, Collaboration, etc.'}),
+            'message': forms.Textarea(attrs={'class': 'form-input-field', 'placeholder': 'Your message...', 'rows': 6}),
         }
-    
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['full_name'].widget.attrs.update({'placeholder': 'Your name'})
-        self.fields['email'].widget.attrs.update({'placeholder': 'Your email address'})
-        self.fields['phone_number'].widget.attrs.update({'placeholder': 'Your phone number (optional)'})
-        self.fields['subject'].widget.attrs.update({'placeholder': 'Subject (optional)'})
-        self.fields['message'].widget.attrs.update({'placeholder': 'Your message here...'})
+        # Add help text for fields if needed
+        help_texts = {
+            'phone_number': 'Optional: Enter your phone number including country code (e.g., +1234567890).',
+        }

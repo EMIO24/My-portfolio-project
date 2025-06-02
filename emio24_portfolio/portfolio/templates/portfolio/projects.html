@@ -1,67 +1,80 @@
+
 {% extends 'portfolio/base.html' %}
+{% load static %}
+
+{% block title %}Projects | EMIO24 Portfolio{% endblock %}
 
 {% block content %}
-<section class="py-12">
-    <div class="container mx-auto">
-        <h1 class="text-4xl font-bold mb-8">My Projects</h1>
-        
+    <section class="py-12" id="projects-list">
+        <h1 class="text-4xl font-bold mb-8 text-gray-800 text-center">My Projects</h1>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {% for project in page_obj %}
-            <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition">
-                <div class="h-48 bg-gray-200 overflow-hidden">
-                    {% if project.images.first %}
-                    <img src="{{ project.images.first.image.url }}" alt="{{ project.images.first.alt_text }}" class="w-full h-full object-cover">
-                    {% endif %}
-                </div>
-                <div class="p-6">
-                    <h2 class="text-xl font-bold mb-2">{{ project.name }}</h2>
-                    {% if project.client_name %}
-                    <p class="text-gray-600 text-sm mb-2">Client: {{ project.client_name }}</p>
-                    {% endif %}
-                    <p class="text-gray-600 mb-4">{{ project.short_description }}</p>
-                    <div class="flex flex-wrap gap-2 mb-4">
-                        {% for tech in project.technologies_used.all|slice:":3" %}
-                        <span class="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">{{ tech.technology.name }}</span>
-                        {% endfor %}
-                        {% if project.technologies_used.count > 3 %}
-                        <span class="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">+{{ project.technologies_used.count|add:"-3" }} more</span>
+            {% for project in page_obj %} {# Loop through paginated projects #}
+                <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition">
+                    <div class="h-48 bg-gray-200 overflow-hidden">
+                        {% if project.images.first %}
+                            <img src="{{ project.images.first.image.url }}" alt="{{ project.images.first.alt_text|default:project.name }}" class="w-full h-full object-cover">
+                        {% else %}
+                            <img src="https://placehold.co/600x400/E0E7FF/4F46E5?text=No+Image" alt="Placeholder image for {{ project.name }}" class="w-full h-full object-cover">
                         {% endif %}
                     </div>
-                    <a href="{% url 'project_detail' project.slug %}" class="text-indigo-600 font-medium hover:text-indigo-800">View Details</a>
+                    <div class="p-6">
+                        <h2 class="text-xl font-bold mb-2">{{ project.name }}</h2>
+                        <p class="text-gray-600 text-sm mb-2">Client: {{ project.client_name|default:"N/A" }}</p>
+                        <p class="text-gray-600 mb-4">{{ project.short_description }}</p>
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            {% for pt in project.technologies_used.all|slice:":3" %} {# Show only first 3 technologies #}
+                                <span class="bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded">{{ pt.technology.name }}</span>
+                            {% empty %}
+                                <span class="text-gray-500 text-xs">No technologies listed.</span>
+                            {% endfor %}
+                            {% if project.technologies_used.count > 3 %}
+                                <span class="bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded">+{{ project.technologies_used.count|add:"-3" }} more</span>
+                            {% endif %}
+                        </div>
+                        <a href="{% url 'project_detail' slug=project.slug %}" class="text-indigo-600 font-medium hover:text-indigo-800">View Details</a>
+                    </div>
                 </div>
-            </div>
+            {% empty %}
+                <p class="col-span-full text-center text-gray-500 text-lg">No projects available yet. Check back soon!</p>
             {% endfor %}
         </div>
-        
+
         {% if page_obj.has_other_pages %}
-        <div class="mt-8 flex justify-center">
-            <nav class="inline-flex rounded-md shadow">
-                {% if page_obj.has_previous %}
-                <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-2 rounded-l-md border border-gray-300 bg-white text-gray-500 hover:bg-gray-50">
-                    Previous
-                </a>
-                {% endif %}
-                
-                {% for num in page_obj.paginator.page_range %}
-                    {% if page_obj.number == num %}
-                    <span class="px-3 py-2 border-t border-b border-gray-300 bg-indigo-600 text-white">
-                        {{ num }}
-                    </span>
-                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                    <a href="?page={{ num }}" class="px-3 py-2 border-t border-b border-gray-300 bg-white text-gray-500 hover:bg-gray-50">
-                        {{ num }}
-                    </a>
+            <div class="mt-8 flex justify-center">
+                <nav class="inline-flex rounded-md shadow">
+                    {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-2 rounded-l-md border border-gray-300 bg-white text-gray-500 hover:bg-gray-50">
+                            Previous
+                        </a>
+                    {% else %}
+                        <span class="px-3 py-2 rounded-l-md border border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed">
+                            Previous
+                        </span>
                     {% endif %}
-                {% endfor %}
-                
-                {% if page_obj.has_next %}
-                <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-2 rounded-r-md border border-gray-300 bg-white text-gray-500 hover:bg-gray-50">
-                    Next
-                </a>
-                {% endif %}
-            </nav>
-        </div>
+
+                    {% for i in page_obj.paginator.page_range %}
+                        {% if page_obj.number == i %}
+                            <span class="px-3 py-2 border-t border-b border-gray-300 bg-indigo-600 text-white">
+                                {{ i }}
+                            </span>
+                        {% else %}
+                            <a href="?page={{ i }}" class="px-3 py-2 border-t border-b border-gray-300 bg-white text-gray-500 hover:bg-gray-50">
+                                {{ i }}
+                            </a>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-2 rounded-r-md border border-gray-300 bg-white text-gray-500 hover:bg-gray-50">
+                            Next
+                        </a>
+                    {% else %}
+                        <span class="px-3 py-2 rounded-r-md border border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed">
+                            Next
+                        </span>
+                    {% endif %}
+                </nav>
+            </div>
         {% endif %}
-    </div>
-</section>
+    </section>
 {% endblock %}

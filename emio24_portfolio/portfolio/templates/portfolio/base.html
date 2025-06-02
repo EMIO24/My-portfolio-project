@@ -1,33 +1,167 @@
+{# portfolio/templates/portfolio/base.html #}
+{% load static %} {# Load static files for CSS, JS, images #}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}EMIO24 Portfolio{% endblock %}</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    {% block extra_css %}{% endblock %}
+    <style>
+        /* Custom styles for the mobile menu overlay */
+        .mobile-menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9); /* Dark overlay */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+
+        .mobile-menu-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .mobile-menu-overlay .close-btn {
+            position: absolute;
+            top: 1.5rem;
+            right: 2rem;
+            font-size: 2.5rem;
+            color: white;
+            cursor: pointer;
+        }
+
+        .mobile-menu-overlay nav ul {
+            list-style: none;
+            padding: 0;
+            text-align: center;
+        }
+
+        .mobile-menu-overlay nav ul li {
+            margin-bottom: 1.5rem;
+        }
+
+        .mobile-menu-overlay nav ul li a {
+            color: white;
+            font-size: 2.2rem; /* Larger font size for menu items */
+            font-weight: bold;
+            text-decoration: none;
+            transition: color 0.2s ease-in-out;
+        }
+
+        .mobile-menu-overlay nav ul li a:hover {
+            color: #818cf8; /* Tailwind indigo-300 */
+        }
+
+        /* Styling for the hero section to mimic the image (will be in home.html) */
+        /* .hero-section moved to home.html or inline for specific background image */
+
+        /* Custom styling for form inputs - ensure these match the `form-input-field` class from forms.py */
+        .form-input-field {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d5db; /* gray-300 */
+            border-radius: 0.5rem; /* rounded-lg */
+            font-size: 1rem;
+            line-height: 1.5;
+            outline: none;
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+
+        .form-input-field:focus {
+            border-color: #6366f1; /* indigo-500 */
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); /* indigo-500 with opacity */
+        }
+
+        /* Styles for Django Messages */
+        .messages {
+            list-style: none;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 0.5rem;
+            position: relative; /* For the close button */
+        }
+        .messages li {
+            margin-bottom: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.3rem;
+            font-weight: 500;
+        }
+        .messages .success {
+            background-color: #d1fae5; /* green-100 */
+            color: #065f46; /* green-800 */
+            border: 1px solid #34d399; /* green-400 */
+        }
+        .messages .error {
+            background-color: #fee2e2; /* red-100 */
+            color: #991b1b; /* red-800 */
+            border: 1px solid #ef4444; /* red-500 */
+        }
+        .messages .info {
+            background-color: #e0f2fe; /* blue-100 */
+            color: #1e40af; /* blue-800 */
+            border: 1px solid #60a5fa; /* blue-400 */
+        }
+        .messages .warning {
+            background-color: #fffbeb; /* yellow-100 */
+            color: #92400e; /* yellow-800 */
+            border: 1px solid #fbbf24; /* yellow-400 */
+        }
+    </style>
 </head>
-<body class="bg-gray-50">
-    <header class="bg-white shadow-sm">
+<body class="bg-gray-50 font-sans text-gray-800">
+    <header class="bg-white shadow-sm sticky top-0 z-50">
         <div class="container mx-auto px-4 py-6">
             <nav class="flex justify-between items-center">
                 <a href="{% url 'home' %}" class="text-2xl font-bold text-indigo-600">EMIO24</a>
                 <div class="hidden md:flex space-x-8">
-                    <a href="{% url 'home' %}" class="text-gray-700 hover:text-indigo-600">Home</a>
-                    <a href="{% url 'projects' %}" class="text-gray-700 hover:text-indigo-600">Projects</a>
-                    <a href="{% url 'services' %}" class="text-gray-700 hover:text-indigo-600">Services</a>
-                    <a href="{% url 'contact' %}" class="text-gray-700 hover:text-indigo-600">Contact</a>
+                    <a href="{% url 'home' %}" class="text-gray-700 hover:text-indigo-600 transition">Home</a>
+                    <a href="{% url 'projects' %}" class="text-gray-700 hover:text-indigo-600 transition">Projects</a>
+                    <a href="{% url 'services' %}" class="text-gray-700 hover:text-indigo-600 transition">Services</a>
+                    <a href="{% url 'contact' %}" class="text-gray-700 hover:text-indigo-600 transition">Contact</a>
                 </div>
-                <button class="md:hidden text-gray-700">
+                <button id="mobile-menu-toggle" class="md:hidden text-gray-700 focus:outline-none">
                     <i class="fas fa-bars text-2xl"></i>
                 </button>
             </nav>
         </div>
     </header>
 
+    <div id="mobile-menu-overlay" class="mobile-menu-overlay">
+        <button class="close-btn" id="mobile-menu-close">&times;</button>
+        <nav>
+            <ul>
+                <li><a href="{% url 'home' %}">HOME</a></li>
+                <li><a href="{% url 'projects' %}">PROJECTS</a></li>
+                <li><a href="{% url 'services' %}">SERVICES</a></li>
+                <li><a href="{% url 'contact' %}">CONTACT</a></li>
+                <li><a href="#">BOOK</a></li> {# Placeholder if you add a booking system later #}
+            </ul>
+        </nav>
+    </div>
+
     <main class="container mx-auto px-4 py-8">
-        {% block content %}{% endblock %}
+        {# Display Django messages #}
+        {% if messages %}
+            <ul class="messages mx-auto max-w-4xl">
+                {% for message in messages %}
+                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        {% block content %}
+            {# Content from specific page templates will be inserted here #}
+        {% endblock %}
     </main>
 
     <footer class="bg-gray-800 text-white py-12">
@@ -40,16 +174,16 @@
                 <div>
                     <h3 class="text-xl font-bold mb-4">Quick Links</h3>
                     <ul class="space-y-2">
-                        <li><a href="{% url 'home' %}" class="text-gray-300 hover:text-white">Home</a></li>
-                        <li><a href="{% url 'projects' %}" class="text-gray-300 hover:text-white">Projects</a></li>
-                        <li><a href="{% url 'services' %}" class="text-gray-300 hover:text-white">Services</a></li>
-                        <li><a href="{% url 'contact' %}" class="text-gray-300 hover:text-white">Contact</a></li>
+                        <li><a href="{% url 'home' %}" class="text-gray-300 hover:text-white transition">Home</a></li>
+                        <li><a href="{% url 'projects' %}" class="text-gray-300 hover:text-white transition">Projects</a></li>
+                        <li><a href="{% url 'services' %}" class="text-gray-300 hover:text-white transition">Services</a></li>
+                        <li><a href="{% url 'contact' %}" class="text-gray-300 hover:text-white transition">Contact</a></li>
                     </ul>
                 </div>
                 <div>
                     <h3 class="text-xl font-bold mb-4">Get In Touch</h3>
                     <p class="text-gray-300 mb-4">Have a project in mind or want to discuss opportunities?</p>
-                    <a href="{% url 'contact' %}" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition">Contact Me</a>
+                    <a href="{% url 'contact' %}" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition transform hover:scale-105">Contact Me</a>
                 </div>
             </div>
             <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
@@ -58,6 +192,48 @@
         </div>
     </footer>
 
-    {% block extra_js %}{% endblock %}
+    <script>
+        // JavaScript for Mobile Menu Toggle
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        const mobileMenuOverlay = document.getElementById('mobile-menu-overlay');
+        const mobileMenuClose = document.getElementById('mobile-menu-close');
+        const mobileMenuLinks = mobileMenuOverlay.querySelectorAll('a');
+
+        mobileMenuToggle.addEventListener('click', () => {
+            mobileMenuOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden'; // Prevent scrolling when menu is open
+        });
+
+        mobileMenuClose.addEventListener('click', () => {
+            mobileMenuOverlay.classList.remove('active');
+            document.body.style.overflow = ''; // Restore scrolling
+        });
+
+        // Close menu when a link is clicked
+        mobileMenuLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenuOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+                // Optional: Smooth scroll to section (if using one-page design)
+                // const targetId = link.getAttribute('href').substring(1);
+                // const targetElement = document.getElementById(targetId);
+                // if (targetElement) {
+                //     targetElement.scrollIntoView({ behavior: 'smooth' });
+                // }
+            });
+        });
+
+        // Optional: Auto-close Django messages after a few seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            const messages = document.querySelectorAll('.messages li');
+            messages.forEach(message => {
+                setTimeout(() => {
+                    message.style.opacity = '0';
+                    message.style.transition = 'opacity 0.5s ease-out';
+                    setTimeout(() => message.remove(), 500); // Remove after transition
+                }, 5000); // 5 seconds
+            });
+        });
+    </script>
 </body>
 </html>

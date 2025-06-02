@@ -1,0 +1,105 @@
+{# portfolio/templates/portfolio/project_detail.html #}
+{% extends 'portfolio/base.html' %}
+{% load static %}
+
+{% block title %}{{ project.name }} | EMIO24 Portfolio{% endblock %}
+
+{% block content %}
+    <section class="py-12" id="project-detail">
+        <div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+            <div class="mb-8">
+                <h1 class="text-3xl md:text-4xl font-bold mb-4">{{ project.name }}</h1>
+                <p class="text-gray-600 mb-4">Client: {{ project.client_name|default:"N/A" }}</p>
+                <p class="text-gray-600 mb-4">Completed: {{ project.completion_date|date:"F Y" }}</p>
+                {% if project.repository_url %}
+                    <a href="{{ project.repository_url }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center text-indigo-600 hover:text-indigo-800 font-medium mr-4">
+                        <i class="fab fa-github mr-2"></i> View on GitHub
+                    </a>
+                {% endif %}
+                {% if project.live_url %}
+                    <a href="{{ project.live_url }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center text-indigo-600 hover:text-indigo-800 font-medium">
+                        <i class="fas fa-external-link-alt mr-2"></i> Live Demo
+                    </a>
+                {% endif %}
+            </div>
+
+            <div class="mb-12">
+                {% if project.images.all %}
+                    <div class="bg-gray-200 rounded-lg overflow-hidden mb-6">
+                        {# Display the first image as the main image #}
+                        <img src="{{ project.images.first.image.url }}" alt="{{ project.images.first.alt_text|default:project.name }}" class="w-full h-auto object-cover">
+                    </div>
+                {% endif %}
+
+                <div class="prose max-w-none text-gray-700 leading-relaxed">
+                    <h2 class="text-2xl font-bold mb-4">Project Overview</h2>
+                    <p>{{ project.full_description|linebreaksbr }}</p> {# Renders line breaks from admin as <br> tags #}
+                </div>
+            </div>
+
+            {% if project.images.all.count > 1 %}
+            <div class="mb-12">
+                <h2 class="text-2xl font-bold mb-6">Project Gallery</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {% for image in project.images.all %}
+                        {% if not forloop.first %} {# Skip the first image as it's used as main #}
+                            <div class="bg-gray-200 rounded-lg overflow-hidden">
+                                <img src="{{ image.image.url }}" alt="{{ image.alt_text|default:image.caption }}" class="w-full h-auto object-cover">
+                                {% if image.caption %}<p class="mt-2 p-2 text-sm text-gray-600">{{ image.caption }}</p>{% endif %}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if project.technologies_used.all %}
+            <div class="mb-12">
+                <h2 class="text-2xl font-bold mb-6">Technologies Used</h2>
+                <div class="flex flex-wrap gap-4">
+                    {% for pt in project.technologies_used.all %}
+                        <div class="flex items-center bg-gray-100 rounded-lg px-4 py-3 shadow-sm">
+                            {% if pt.technology.logo %}
+                                <img src="{{ pt.technology.logo.url }}" alt="{{ pt.technology.name }} logo" class="w-8 h-8 mr-3 object-contain">
+                            {% else %}
+                                {# Placeholder icon if no logo #}
+                                <i class="fas fa-laptop-code text-indigo-600 w-8 h-8 flex items-center justify-center mr-3 text-2xl"></i>
+                            {% endif %}
+                            <div>
+                                <h3 class="font-medium">{{ pt.technology.name }}</h3>
+                                {% if pt.usage_context %}<p class="text-sm text-gray-600">{{ pt.usage_context }}</p>{% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if project.testimonials.all %}
+            <div class="mb-12">
+                <h2 class="text-2xl font-bold mb-6">Client Feedback</h2>
+                <div class="space-y-6">
+                    {% for testimonial in project.testimonials.all %}
+                        <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+                            <div class="flex items-center mb-4">
+                                <div class="bg-indigo-100 text-indigo-600 rounded-full w-10 h-10 flex items-center justify-center mr-4 text-xl">
+                                    <i class="fas fa-quote-left"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold">{{ testimonial.client_name }}</h4>
+                                    {% if testimonial.client_company_or_role %}<p class="text-gray-600 text-sm">{{ testimonial.client_company_or_role }}</p>{% endif %}
+                                </div>
+                            </div>
+                            <p class="text-gray-700 italic">"{{ testimonial.quote_text }}"</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="text-center mt-12">
+                <a href="{% url 'projects' %}" class="inline-block bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-indigo-700 transition">Back to All Projects</a>
+            </div>
+        </div>
+    </section>
+{% endblock %}
