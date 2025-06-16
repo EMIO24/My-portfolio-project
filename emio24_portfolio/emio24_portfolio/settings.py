@@ -12,24 +12,57 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import os
+import environ # Import the django-environ library
+import dj_database_url # Import dj_database_url for easy database URL parsing
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# -----------------------------------------------------------------------------
+# Core Settings & Environment Variable Management (Crucial for PaaS)
+# -----------------------------------------------------------------------------
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
+# Initialize django-environ
+# This object will allow us to easily read environment variables.
+env = environ.Env(
+    # Define default values and types for environment variables.
+    # These defaults are used if the variable is not found in the .env file or system environment.
+    DEBUG=(bool, False), # By default, DEBUG is False (for safety in production)
+    SECRET_KEY=(str, 'django-insecure-p0^on3-&1be8-6#$hq#%-*9@u8v=@@q1!%q&gh)nzesskdfa^v'), # Fallback for development/testing
+    DATABASE_URL=(str, 'sqlite:///db.sqlite3'), # Default to SQLite for local development convenience
+    ALLOWED_HOSTS=(list, []), # Default to an empty list
+)
+
+
+# Attempt to read environment variables from a .env file during local development.
+# In production on Render, environment variables are set directly in the Render dashboard
+# and will override any values here or in the .env file.
+if os.path.exists(BASE_DIR / '.env'):
+    environ.Env.read_env(str(BASE_DIR / '.env'))
+    print("DEBUG: Loaded .env file.") # Helps confirm local .env is being read
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-p0^on3-&1be8-6#$hq#%-*9@u8v=@@q1!%q&gh)nzesskdfa^v'
+# It's pulled from the environment variable named 'SECRET_KEY'.
+# In production, Render will provide this. Locally, it comes from .env.
+SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Debug mode is controlled by the 'DEBUG' environment variable.
+# It should be 'False' in production for security and performance.
+DEBUG = env('DEBUG')
 
-ALLOWED_HOSTS = []
+# Define allowed hosts that your Django application will serve.
+# On Render, the platform injects the correct 'Host' headers.
+# Using ['*'] is common for PaaS to allow Render's dynamic hostnames,
+# but for stricter control, you could list your specific Render subdomain
+# (e.g., 'your-app-name.onrender.com') in Render's environment variables
+# as part of ALLOWED_HOSTS.
+ALLOWED_HOSTS = ['*'] # Allows all hosts, common for PaaS environments
 
 
-# Application definition
+# -----------------------------------------------------------------------------
+# Application Definition
+# -----------------------------------------------------------------------------
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -38,11 +71,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'portfolio',
+    'portfolio', # Your custom portfolio app
+    'whitenoise.runserver_nostatic', # New: For serving static files in development with Whitenoise
+    'whitenoise', # New: Essential for serving static files in production on PaaS
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', # New: Must be placed early in the middleware list
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -53,19 +89,21 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'emio24_portfolio.urls'
 
+# -----------------------------------------------------------------------------
+# Templates Configuration
+# -----------------------------------------------------------------------------
 
-#Templates configuration
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'], # Add this line to include a project-level templates directory
-        'APP_DIRS': True,
+        'DIRS': [BASE_DIR / 'templates'], # Project-level templates directory
+        'APP_DIRS': True, # Allows Django to find templates in app-specific 'templates/' folders
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages', # Essential for Django messages
+                'django.contrib.messages.context_processors.messages',
             ],
         },
     },
@@ -74,75 +112,124 @@ TEMPLATES = [
 WSGI_APPLICATION = 'emio24_portfolio.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
+# -----------------------------------------------------------------------------
+# Database Configuration
+# -----------------------------------------------------------------------------
+# This is configured to use the DATABASE_URL environment variable.
+# Render automatically provides this for its PostgreSQL databases.
+# Locally, it will fall back to the default (SQLite or your local PostgreSQL/MySQL from .env).
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'portfolio',       # Replace with your database name
-        'USER': 'EMIO24',       # Replace with your database user
-        'PASSWORD': 'Passion13.',   # Replace with your database password
-        'HOST': 'localhost',          # Or the IP address/hostname of your MySQL server
-        'PORT': '3306',               # Default MySQL port
-        'OPTIONS': {
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'", # Recommended for MySQL
-        }
-    }
+    'default': dj_database_url.config(
+        default=env('DATABASE_URL'), # Use the DATABASE_URL from environment or .env
+        conn_max_age=600 # Optional: Controls database connection longevity
+    )
 }
 
-# Password validation
-# https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
+
+# -----------------------------------------------------------------------------
+# Password Validation
+# -----------------------------------------------------------------------------
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    { 'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator', },
+    { 'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', },
+    { 'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator', },
+    { 'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator', },
 ]
 
 
+# -----------------------------------------------------------------------------
 # Internationalization
-# https://docs.djangoproject.com/en/5.1/topics/i18n/
+# -----------------------------------------------------------------------------
 
 LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
-
+TIME_ZONE = 'Africa/Lagos' # Ensure this is correct for your region
 USE_I18N = True
+USE_TZ = True # Django will handle timezone conversions
 
-USE_TZ = True
 
+# -----------------------------------------------------------------------------
+# Static and Media Files Configuration
+# -----------------------------------------------------------------------------
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.1/howto/static-files/
-
-# Static files configuration
+# URL prefix for static files (CSS, JavaScript, Images)
 STATIC_URL = 'static/'
+# Directory where `collectstatic` will gather all static files for production.
+# This directory should be created (or emptied) by `collectstatic`.
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+# Additional directories where Django will look for static files during development
+# (e.g., your project's main 'static/' folder for hero-bg.jpg).
 STATICFILES_DIRS = [
-    BASE_DIR / 'static', # Where Django will look for static files during development
+    BASE_DIR / 'static',
 ]
-STATIC_ROOT = BASE_DIR / 'staticfiles' # Where 'collectstatic' will gather static files for production
 
-# Media files (user-uploaded content)
-MEDIA_URL = 'media/'
-MEDIA_ROOT = BASE_DIR / 'mediafiles' # Where uploaded files will be stored
+# URL prefix for media files (user-uploaded content)
+MEDIA_URL = '/media/'
+# Absolute path to the directory where user-uploaded files will be stored.
+# IMPORTANT: Render's free tier for web services does NOT provide persistent storage
+# for MEDIA_ROOT. Files uploaded via admin will be lost on service restarts/deploys.
+# For persistent user uploads, you need cloud storage (e.g., AWS S3, Google Cloud Storage)
+# integrated with `django-storages`. For a portfolio, you might use image URLs in admin
+# or accept that uploads are temporary.
+MEDIA_ROOT = BASE_DIR / 'mediafiles' # Path object is preferred over os.path.join with Path.
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
+
+# -----------------------------------------------------------------------------
+# Default Primary Key Field Type
+# -----------------------------------------------------------------------------
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Media files configuration
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+# -----------------------------------------------------------------------------
+# Production Security Settings (Enabled when DEBUG is False)
+# -----------------------------------------------------------------------------
+if not DEBUG:
+    # Whitenoise: Essential for serving static files directly from Gunicorn in production.
+    # It compresses files and adds appropriate caching headers.
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+    # Security Headers (Render might handle some, but good to set defensively)
+    SECURE_BROWSER_XSS_FILTER = True # Helps prevent XSS attacks
+    SECURE_CONTENT_TYPE_NOSNIFF = True # Prevents browsers from guessing MIME types
+    X_FRAME_OPTIONS = 'DENY' # Prevents clickjacking by forbidding embedding in iframes
+
+    # Cookies Security
+    CSRF_COOKIE_SECURE = True # Ensures CSRF cookie is only sent over HTTPS
+    SESSION_COOKIE_SECURE = True # Ensures session cookie is only sent over HTTPS
+
+    # HTTPS Redirection (Render often handles this at the load balancer level)
+    # If Render guarantees HTTPS, you might not strictly need this, but it's safe to have.
+    SECURE_SSL_REDIRECT = True # Redirects all HTTP requests to HTTPS
+
+    # HTTP Strict Transport Security (HSTS)
+    # Tells browsers to always use HTTPS for your domain for a specified duration.
+    # Set max_age to a long duration (e.g., 31536000 seconds = 1 year) for public sites.
+    # Only enable this AFTER you are sure your site works fully with HTTPS.
+    SECURE_HSTS_SECONDS = 31536000 # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True # Apply HSTS to all subdomains
+    SECURE_HSTS_PRELOAD = True # Allows your domain to be added to browsers' HSTS preload lists
+
+    # Logging configuration for production (optional, but good practice)
+    # This example sends ERROR and CRITICAL logs to the console (which Render captures)
+    # For more advanced logging, consider sending to a log management service.
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'handlers': {
+            'console': {
+                'class': 'logging.StreamHandler',
+            },
+        },
+        'loggers': {
+            'django': {
+                'handlers': ['console'],
+                'level': 'INFO', # Log INFO and above
+            },
+            'myportfolio_project': { # Adjust to your project's main logger
+                'handlers': ['console'],
+                'level': 'INFO',
+            },
+        },
+    }
 
