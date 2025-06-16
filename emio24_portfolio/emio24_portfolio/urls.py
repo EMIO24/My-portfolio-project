@@ -26,8 +26,12 @@ urlpatterns = [
     path('', include('portfolio.urls')), # Include URLs from the portfolio app
 ]
 
-# Serve media files during development
+
+# --- ONLY FOR DEVELOPMENT SERVER ---
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    # Optionally, also serve static files in development (though collectstatic is for production)
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) # Or settings.STATICFILES_DIRS[0] for project-level static
+
+    # It's also good practice to ensure staticfiles_urlpatterns is included
+    from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+    urlpatterns += staticfiles_urlpatterns()
