@@ -141,7 +141,7 @@ DATABASES = {
     'default': dj_database_url.config(
         default=env('DATABASE_URL'), # Pulls DATABASE_URL from environment or .env
         conn_max_age=600, # Max age of database connections (in seconds) for connection pooling. Recommended for production.
-        conn_health_check=True, # Recommended for production to ensure connections are healthy.
+        conn_health_checks=True, # Recommended for production to ensure connections are healthy.
     )
 }
 
